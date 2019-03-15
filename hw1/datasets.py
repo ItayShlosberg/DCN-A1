@@ -63,7 +63,9 @@ class SubsetDataset(Dataset):
         # Make sure to raise an IndexError if index is out of bounds.
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        if index < 0 or index >= len(self):
+            raise IndexError("index {0} is out of bounds".format(index))
+        return self.source_dataset[self.offset+index]
         # ========================
 
     def __len__(self):

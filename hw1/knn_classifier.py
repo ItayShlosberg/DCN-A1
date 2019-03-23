@@ -4,7 +4,8 @@ from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
 
 import helpers.dataloader_utils as dataloader_utils
-from . import dataloaders
+from collections import Counter
+
 
 
 class KNNClassifier(object):
@@ -53,7 +54,13 @@ class KNNClassifier(object):
             # - Set y_pred[i] to the most common class among them
 
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            # get the labels of the knn.
+            dists = dist_matrix[i]
+            _, inds = torch.sort(dists, -1, False)
+            knn_labels = self.y_train[inds[:self.k]]
+
+            # get the most common label.
+            y_pred[i] = int(Counter(knn_labels.numpy()).most_common(1)[0][0])
             # ========================
 
         return y_pred
@@ -80,7 +87,9 @@ class KNNClassifier(object):
 
         dists = torch.tensor([])
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        dists = torch.sqrt(((x_test ** 2).sum(1, keepdim=True) +
+                            (self.x_train ** 2).sum(1) - 2 * torch.mm(x_test, torch.t(self.x_train))))
+
         # ========================
 
         return dists
@@ -101,7 +110,7 @@ def accuracy(y: Tensor, y_pred: Tensor):
 
     accuracy = None
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    accuracy = float((y == y_pred).sum().item())/len(y)
     # ========================
 
     return accuracy
@@ -131,7 +140,26 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
         # different split each iteration), or implement something else.
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        ds_size = len(ds_train)
+        fold_size = int(np.ceil(ds_size/num_folds))
+        acc_fold = np.zeros(num_folds)
+        for fold_idx in range(num_folds):
+            # Extract data to train and validation.
+            ind_vl = [aa for aa in range(fold_idx*fold_size, (fold_idx+1)*fold_size)]
+            ind_tr = [aa for aa in range(fold_idx*fold_size)] + [aa for aa in range((fold_idx+1)*fold_size, ds_size)]
+            ds_tr = torch.utils.data.dataset.Subset(ds_train, ind_tr)
+            ds_vl = torch.utils.data.dataset.Subset(ds_train, ind_vl)
+            dl_tr = torch.utils.data.DataLoader(ds_tr, 1024)
+            dl_vl = torch.utils.data.DataLoader(ds_vl, 1024)
+            x_vl, y_vl = dataloader_utils.flatten(dl_vl)
+
+            # train model.
+            model.train(dl_tr)
+            # get validation predictions.
+            y_pred = model.predict(x_vl)
+            # check accuracy.
+            acc_fold[fold_idx] = accuracy(y_vl, y_pred)
+        accuracies.append(acc_fold)
         # ========================
 
     best_k_idx = np.argmax([np.mean(acc) for acc in accuracies])

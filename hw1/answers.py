@@ -11,13 +11,14 @@ math (delimited with $$).
 part2_q1 = r"""
 **Your answer:**
 
+More neighbors smooths out local weirdness, which is what causes lack of generalization.
+The more smoothing, the less local "hiccups" in the model, and the more generalization.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+And,if we choose K = data set size, then our algorithm behaves as
+underfitting and it gives a smooth decision surface and everything
+becomes one class which is the majority class in our DataSet.
+
+So, we should choose K wisely such that it should neither be overfitting nor be underfitting .
 
 """
 # ==============

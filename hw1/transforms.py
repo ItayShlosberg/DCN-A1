@@ -29,7 +29,10 @@ class BiasTrick(object):
         # Make sure to use the same data type.
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        tensor_with_bias = torch.zeros(tensor.shape[0]+1)
+        tensor_with_bias[:tensor.shape[0]] = tensor
+        tensor_with_bias[tensor.shape[0]] = 1
+        return tensor_with_bias
         # ========================
 
 

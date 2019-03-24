@@ -1,6 +1,6 @@
 import abc
 import torch
-
+import numpy as np
 
 class ClassifierLoss(abc.ABC):
     """
@@ -55,12 +55,25 @@ class SVMHingeLoss(ClassifierLoss):
 
         loss = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        #num_classes = list(x_scores.size())[1]
+        #num_train = list(x.size())[0]
+        
+        #dW = torch.zeros((num_train, num_classes))
+        loss = 0.0
+        scores = x_scores[np.arange(len(x_scores)),y].unsqueeze(1)
+        margins = torch.clamp(x_scores-scores+1, min=0)
+        
+        margins[np.arange(x.shape[0]),y] = 0
+        
+        loss = torch.mean(torch.sum(margins, dim=1))
         # ========================
 
         # TODO: Save what you need for gradient calculation in self.grad_ctx
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.grad_ctx['margins'] = margins
+        self.grad_ctx['x_scores'] = x_scores
+        self.grad_ctx['x'] = x
+        self.grad_ctx['y'] = y
         # ========================
 
         return loss
@@ -73,7 +86,17 @@ class SVMHingeLoss(ClassifierLoss):
 
         grad = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        margins = self.grad_ctx['margins']
+        x_scores = self.grad_ctx['x_scores']
+        x = self.grad_ctx['x']
+        y = self.grad_ctx['y']
+       
+        binary = margins
+        binary[margins>0] = 1
+        
+        row_sum = torch.sum(binary, dim=1)
+        binary[np.arange(len(x_scores)),y] -= row_sum
+        grad = x.transpose(1,0).mm(binary) / len(x_scores)
         # ========================
 
         return grad

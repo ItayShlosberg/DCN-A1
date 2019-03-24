@@ -45,7 +45,7 @@ class LinearClassifier(object):
         y_pred, class_scores = None, None
         # ====== YOUR CODE: ======
 
-        class_scores = torch.mm(x,self.weights)
+        class_scores = torch.mm(x, self.weights)
         y_pred = torch.argmax(class_scores, dim=1)
 
         # ========================
@@ -102,11 +102,46 @@ class LinearClassifier(object):
             average_loss = 0
 
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            total_samples = 0
+            total_loss = 0
+            # question: update weights each batch, or accumulate loss and grad
+            # and update at the end of the epoch?
+            # in the tutorial they updated the weights (model.params) each batch
+            for i, (x, y) in enumerate(dl_train):
+                print(0)
+                y_pred, scores = self.predict(x)
+                # loss/grad with regularization term added
+                loss = loss_fn.loss(x, y, scores, y_pred) + (weight_decay / 2) * (self.weights.norm() ** 2)
+                grad = loss_fn.grad() + weight_decay * self.weights
+                self.weights -= learn_rate * grad
+
+                total_correct += (y == y_pred).sum().item()
+                total_samples += x.shape[0]
+                total_loss += loss.item()
+
+            train_res.accuracy.append(total_correct / total_samples)
+            train_res.loss.append(total_loss / total_samples)
+
+            total_correct = 0
+            total_samples = 0
+            total_loss = 0
+            for i, (x, y) in enumerate(dl_valid):
+                print(2)
+                y_pred, scores = self.predict(x)
+                # loss/grad with regularization term added
+                loss = loss_fn.loss(x, y, scores, y_pred) + (weight_decay / 2) * (self.weights.norm() ** 2)
+                # not updating weights, because this is the validation set
+
+                total_correct += (y == y_pred).sum().item()
+                total_samples += x.shape[0]
+                total_loss += loss.item()
+
+            valid_res.accuracy.append(total_correct / total_samples)
+            valid_res.loss.append(total_loss / total_samples)
+            print('epoch ended', epoch_idx)
             # ========================
             print('.', end='')
 
-        print('')
         return train_res, valid_res
 
     def weights_as_images(self, img_shape, has_bias=True):
@@ -122,7 +157,8 @@ class LinearClassifier(object):
         # The output shape should be (n_classes, C, H, W).
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        weights = self.weights[0:-1,:] if has_bias else self.weights
+        return weights.reshape(-1, *img_shape)
         # ========================
 
         return w_images

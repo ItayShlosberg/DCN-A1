@@ -29,39 +29,27 @@ So, we should choose K wisely such that it should neither be overfitting nor be 
 part3_q1 = r"""
 **Your answer:**
 
+The hyperparameters $Δ$ and $λ$ may seem like two different hyperparameters, but in fact they both control the same tradeoff: The tradeoff between the data loss and the regularization loss in the objective. Clearly, the magnitude of the weights $W$ has direct effect on the scores: As we shrink all values inside W the score differences will become lower, and as we scale up the weights the score differences will all become higher. 
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+Namely, the exact value of the margin $Δ$ is arbitrary because the weights can shrink or stretch the differences arbitrarily. Hence, the only real tradeoff is how large we allow the weights to grow, through the regularization strength $λ$. This gives us the power to arbitrarily select $Δ$.
 
 """
 
 part3_q2 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+We can interpret the reshaped image weights as patterns of the digits 0-9.
+The matrix multiplication behaves as an inner product between the inputs X with those 
+patterns, then extract the label of the pattern that produced the maximum value.
 """
 
 part3_q3 = r"""
 **Your answer:**
+1. The learning rate is good, since the loss converges smoothly and relatively quickly. If the learning 
+rate was too high, the graph would be noisier and perhaps wouldn't even converge, while a low learning rate would cause
+a very slow convergence.
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+2. We can see there is a constant gap between the training and validation accuracy, the training one being higher.
+This hints that the model is slightly overfitted over the training data. (The model has a bit of a hard time generalizing to the validation set - High variance)
 
 """
 
@@ -71,28 +59,21 @@ An equation: $e^{i\pi} -1 = 0$
 # Part 4 answers
 
 part4_q1 = r"""
-**Your answer:**
+The ideal residual plot would have both dashed lines merge in the middle with the zero line.
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+THe best model did better on both validation and test set using cross validation, than the model
+generated with the top 5 Boston features. This is easily visuallized by the fact the dashed lines are closer
+to the zero lines and the data cloud's spread is closer to the zero line.
 
 """
 
 part4_q2 = r"""
-**Your answer:**
 
+1. Using logspace lets us sample a wider range of values for $λ$, iterating over various orders of magnitude.
+Had we used linspace we had to use many more samples, resulting in a much slower process,
+or have the samples more sparse, resulting in a less representetive search for the smaller orders of magnitude.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+2. The model was fitted #degrees x #lambdas x #folds times, so 3 x 20 x 3 = 180 times. 
 
 """
 

@@ -96,7 +96,7 @@ class SVMHingeLoss(ClassifierLoss):
         
         row_sum = torch.sum(binary, dim=1)
         binary[np.arange(len(x_scores)),y] -= row_sum
-        grad = x.transpose(1,0).mm(binary) / len(x_scores)
+        grad = x.transpose(1, 0).mm(binary) / len(x_scores)
         # ========================
 
         return grad

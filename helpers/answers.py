@@ -28,7 +28,7 @@ Write your answer using **markdown** and $\\LaTeX$:
 # A code block
 a = 2
 ```
-An equation: $e^{i\\pi} -1 = 0$
+An equation: $e^{i\\pi} -1 = 0$zz
 """
 
 

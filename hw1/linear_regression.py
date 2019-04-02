@@ -5,7 +5,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from pandas import DataFrame
 from sklearn.utils import check_array
 from sklearn.utils.validation import check_is_fitted, check_X_y
-
+from sklearn.model_selection import KFold
 
 class LinearRegressor(BaseEstimator, RegressorMixin):
     """
@@ -30,7 +30,7 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
 
         y_pred = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        y_pred = np.dot(X, self.weights_)
         # ========================
 
         return y_pred
@@ -48,7 +48,12 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
 
         w_opt = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        # we need to calculate [(X^T * X)^-1] * [X^T] * [y] , with regularization
+        res = np.dot(X.T, X)
+        res = np.add(res, self.reg_lambda * np.eye(res.shape[0]))
+        res = np.linalg.inv(res) # -1 operation
+
+        w_opt = np.dot(res, np.dot(X.T, y))
         # ========================
 
         self.weights_ = w_opt
@@ -74,7 +79,7 @@ class BiasTrickTransformer(BaseEstimator, TransformerMixin):
 
         xb = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        xb = np.hstack((np.ones(X.shape[0])[:,np.newaxis],X))
         # ========================
 
         return xb
@@ -90,7 +95,6 @@ class BostonFeaturesTransformer(BaseEstimator, TransformerMixin):
         # TODO: Your custom initialization, if needed
         # Add any hyperparameters you need and save them as above
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
         # ========================
 
     def fit(self, X, y=None):
@@ -112,7 +116,8 @@ class BostonFeaturesTransformer(BaseEstimator, TransformerMixin):
 
         X_transformed = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        X_poly = PolynomialFeatures(degree=self.degree)
+        X_transformed = X_poly.fit_transform(X)
         # ========================
 
         return X_transformed
@@ -136,7 +141,22 @@ def top_correlated_features(df: DataFrame, target_feature, n=5):
     # TODO: Calculate correlations with target and sort features by it
 
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    
+    data = df[df.columns[df.columns != target_feature]].values
+    target = df[target_feature].values
+
+    data_mean0 = data - data.mean(axis=0)
+    target_mean0 = target - target.mean()
+    
+    var_data = np.sqrt((data_mean0 ** 2).sum(axis=0))
+    var_target = np.sqrt((target_mean0 ** 2).sum())
+    
+    ro_mat = (data_mean0 * target_mean0.reshape(-1, 1)).sum(axis=0) / (var_data * var_target)
+    
+    best_indices = np.abs(ro_mat).argsort()[:-n-1:-1]
+    
+    top_n_features = df.columns[best_indices]
+    top_n_corr = ro_mat[best_indices]
     # ========================
 
     return top_n_features, top_n_corr
@@ -170,7 +190,50 @@ def cv_best_hyperparams(model: BaseEstimator, X, y, k_folds,
     # - You can use MSE or R^2 as a score.
 
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    best_params = None
+    best_loss = -1
+    
+    for degree in degree_range:
+        for lambda_val in lambda_range:
+            # create the hyper-parameters for the model
+            params = dict(linearregressor__reg_lambda=lambda_val, 
+                          bostonfeaturestransformer__degree=degree)
+
+            model.set_params(**params)
+
+            # k-fold split
+            kf = KFold(n_splits=k_folds)
+
+            loss = 0
+            for fold_ind_train, fold_ind_test in kf.split(X):
+                
+                # getting the fold values
+                train_X_fold = X[fold_ind_train]
+                train_y_fold = y[fold_ind_train]
+                
+                test_X_fold = X[fold_ind_test]
+                test_y_fold = y[fold_ind_test]
+
+                model.fit(train_X_fold, train_y_fold)
+
+                y_pred = model.predict(test_X_fold)
+                
+                mse = np.mean((test_y_fold - y_pred) ** 2)
+
+                loss += mse
+
+            # first loop - initialization
+            if best_loss < 0:
+                best_params = params
+                best_loss = loss
+            
+            else:
+                best_loss = min(loss, best_loss)
+                if loss > best_loss:
+                    best_params = best_params 
+                else:
+                    best_params = params
+                
     # ========================
 
     return best_params

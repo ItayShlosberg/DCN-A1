@@ -104,17 +104,19 @@ class LinearClassifier(object):
             # ====== YOUR CODE: ======
             total_samples = 0
             total_loss = 0
-            # question: update weights each batch, or accumulate loss and grad
-            # and update at the end of the epoch?
-            # in the tutorial they updated the weights (model.params) each batch
+            
+            # getting loss history on train
             for i, (x, y) in enumerate(dl_train):
-                print(0)
                 y_pred, scores = self.predict(x)
-                # loss/grad with regularization term added
+                
+                # loss and gradient with regularization
                 loss = loss_fn.loss(x, y, scores, y_pred) + (weight_decay / 2) * (self.weights.norm() ** 2)
                 grad = loss_fn.grad() + weight_decay * self.weights
+                
+                #gradient descent step
                 self.weights -= learn_rate * grad
-
+                
+                #results
                 total_correct += (y == y_pred).sum().item()
                 total_samples += x.shape[0]
                 total_loss += loss.item()
@@ -125,20 +127,21 @@ class LinearClassifier(object):
             total_correct = 0
             total_samples = 0
             total_loss = 0
+            
+            #getting loss history on validation
             for i, (x, y) in enumerate(dl_valid):
-                print(2)
                 y_pred, scores = self.predict(x)
-                # loss/grad with regularization term added
+                
+                # loss and gradient with regularization
                 loss = loss_fn.loss(x, y, scores, y_pred) + (weight_decay / 2) * (self.weights.norm() ** 2)
-                # not updating weights, because this is the validation set
-
+                
+                #results
                 total_correct += (y == y_pred).sum().item()
                 total_samples += x.shape[0]
                 total_loss += loss.item()
 
             valid_res.accuracy.append(total_correct / total_samples)
             valid_res.loss.append(total_loss / total_samples)
-            print('epoch ended', epoch_idx)
             # ========================
             print('.', end='')
 
@@ -157,7 +160,7 @@ class LinearClassifier(object):
         # The output shape should be (n_classes, C, H, W).
 
         # ====== YOUR CODE: ======
-        weights = self.weights[0:-1,:] if has_bias else self.weights
+        weights = self.weights[:-1,:] if has_bias else self.weights
         return weights.reshape(-1, *img_shape)
         # ========================
 
